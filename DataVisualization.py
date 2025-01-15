@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import requests
 
-# Judul aplikasi
+
 st.title("Advanced Data Visualization Tool")
 
 BASE_URL = "https://satudata.jatengprov.go.id/v1/data/"
@@ -12,7 +12,7 @@ filtered_df = None
 filtered_df2 = None
 df = None
 
-# Fungsi untuk mengubah tipe data
+
 def modify_column_dtype(df, column, new_dtype):
     try:
         if new_dtype == "String":
@@ -28,7 +28,7 @@ def modify_column_dtype(df, column, new_dtype):
     except Exception as e:
         st.error(f"Failed to convert column '{column}' to {new_dtype}. Error: {e}")
 
-# Fungsi untuk memfilter data dengan banyak filter opsional
+
 def apply_filters(df):
     st.sidebar.header("Filters (Optional)")
     filter_count = st.sidebar.number_input("Number of Filters", min_value=0, max_value=10, step=1, value=0, key="filter_count")
@@ -85,35 +85,16 @@ def apply_filters2(df):
     return df
 
 def fetch_and_convert_to_dataframe(url, token):
-    """
-    Mengambil data dari API dan mengubahnya menjadi DataFrame.
-
-    Args:
-    - url (str): URL untuk melakukan permintaan GET.
-    - token (str): Token untuk otentikasi.
-
-    Returns:
-    - pd.DataFrame: DataFrame yang berisi data dari respons API, atau None jika gagal.
-    """
     headers = {"Authorization": f"Bearer {token}"}
-
-    # Mengirim permintaan GET ke URL
     response = requests.get(url, headers=headers)
 
-    # Cek status kode untuk memastikan respons berhasil
     if response.status_code == 200:
-        # Mengambil data JSON dari respons
         data = response.json()
-
-        # Cek struktur data JSON untuk menemukan array yang berisi data yang akan diubah menjadi DataFrame
         if isinstance(data, dict) and 'data' in data:
             # Jika data ada dalam dictionary dengan key 'data', ambil nilai tersebut
             data_list = data['data']
-            
-            # Ubah list of dictionaries menjadi DataFrame
             df = pd.DataFrame(data_list)
-            
-            # Mengembalikan DataFrame sebagai hasil
+                     
             return df
         else:
             st.error("Tidak ada data dalam respons JSON.")
@@ -140,14 +121,12 @@ if "current_judul" not in st.session_state:
 
 # Jika ada data untuk ditampilkan
 if data is not None:
-    # Menampilkan opsi untuk memilih judul dari kolom "judul"
     judul_selected = st.sidebar.selectbox(
         "Pilih Judul",
         options=[None] + list(data['judul'].unique()),
         index=0
     )
 
-    # Reset state jika judul berubah
     if judul_selected != st.session_state.current_judul:
         st.session_state.column_dtypes = {}  # Reset tipe data yang diubah
         st.session_state.current_judul = judul_selected  # Perbarui judul yang dipilih
@@ -163,10 +142,8 @@ if data is not None:
         if df is not None:
             st.sidebar.header(f"Modify Column Data Types")
 
-            # Pilih kolom untuk dimodifikasi
             column_to_modify = st.sidebar.selectbox("Select Column to Modify", df.columns, key="col")
 
-            # Pilih tipe data baru
             new_data_type = st.sidebar.selectbox(
                 "Select New Data Type",
                 ["No Change", "String", "Integer", "Float", "Datetime", "Boolean"],
@@ -174,16 +151,13 @@ if data is not None:
                 key="dtype"
             )
 
-            # Simpan tipe data baru ke dalam session state
             if new_data_type != "No Change":
                 st.session_state.column_dtypes[column_to_modify] = new_data_type
                 modify_column_dtype(df, column_to_modify, new_data_type)
 
-            # Terapkan perubahan tipe data berdasarkan session state
             for column, dtype in st.session_state.column_dtypes.items():
                 modify_column_dtype(df, column, dtype)
 
-            # Terapkan filter dan tampilkan data
             filtered_df = apply_filters(df)
 
             st.write("### Preview Data")
@@ -194,7 +168,7 @@ if data is not None:
         st.write("Please select a title to display data.")
 
         
-# Halaman visualisasi
+
 pages = ["Single Dataset Visualization", "Double Dataset Visualization"]
 selected_page = st.sidebar.selectbox("Select Page", pages)
 
@@ -285,20 +259,18 @@ if selected_page == "Single Dataset Visualization" and df is not None:
     elif graph_type == "Pie Chart":
         category_col = st.sidebar.selectbox("Category Column", categorical_columns)
         
-        # Tambahkan opsi "Count" ke daftar kolom numerik
         value_options = ["Count"] + list(numeric_columns)
         value_col = st.sidebar.selectbox("Value Column", value_options)
         
         color = st.sidebar.color_picker("Select Pie Chart Color", "#636EFA")
         title_label = st.sidebar.text_input(f"Pie Chart of {category_col}")
 
-        # Tentukan nilai untuk pie chart
+
         if value_col == "Count":
             # Menghitung jumlah kategori terlebih dahulu
             category_counts = filtered_df[category_col].value_counts().reset_index()
             category_counts.columns = [category_col, 'Count']
 
-            # Membuat diagram pie
             fig = px.pie(
                 category_counts,
                 names=category_col,
@@ -315,21 +287,17 @@ if selected_page == "Single Dataset Visualization" and df is not None:
                 color_discrete_sequence=[color]
             )
         
-        # Tampilkan pie chart
         st.plotly_chart(fig)
 
 
 elif selected_page == "Double Dataset Visualization":
     st.header("Visualize Correlation Between Two Datasets")
-    
-    # Upload dataset kedua
-    # Inisialisasi state untuk menyimpan tipe data yang diubah dan judul yang dipilih
+
     if "column_dtypes2" not in st.session_state:
         st.session_state.column_dtypes2 = {}
     if "current_judul2" not in st.session_state:
         st.session_state.current_judul2 = None
 
-    # Jika ada data untuk ditampilkan
     if data is not None:
         # Menampilkan opsi untuk memilih judul dari kolom "judul"
         judul_selected2 = st.selectbox(
@@ -339,7 +307,6 @@ elif selected_page == "Double Dataset Visualization":
             key="JudulSelect2"
         )
 
-        # Reset state jika judul berubah
         if judul_selected2 != st.session_state.current_judul2:
             st.session_state.column_dtypes2 = {}  # Reset tipe data yang diubah
             st.session_state.current_judul2 = judul_selected2  # Perbarui judul yang dipilih
@@ -355,10 +322,8 @@ elif selected_page == "Double Dataset Visualization":
             if df2 is not None:
                 st.sidebar.header(f"Modify Column Data Types 2")
 
-                # Pilih kolom untuk dimodifikasi
                 column_to_modify = st.sidebar.selectbox("Select Column to Modify", df2.columns, key="col2")
 
-                # Pilih tipe data baru
                 new_data_type = st.sidebar.selectbox(
                     "Select New Data Type",
                     ["No Change", "String", "Integer", "Float", "Datetime", "Boolean"],
@@ -366,16 +331,13 @@ elif selected_page == "Double Dataset Visualization":
                     key="dtype2"
                 )
 
-                # Simpan tipe data baru ke dalam session state
                 if new_data_type != "No Change":
                     st.session_state.column_dtypes2[column_to_modify] = new_data_type
                     modify_column_dtype(df2, column_to_modify, new_data_type)
 
-                # Terapkan perubahan tipe data berdasarkan session state
                 for column, dtype2 in st.session_state.column_dtypes2.items():
                     modify_column_dtype(df2, column, dtype2)
 
-                # Terapkan filter dan tampilkan data
                 filtered_df2 = apply_filters2(df2)
 
                 st.write("### Preview Data")
@@ -413,15 +375,12 @@ elif selected_page == "Double Dataset Visualization":
                     y_col = st.sidebar.selectbox("Select Y-axis Column (Dataset 2)", numeric_columns2, key="y_axis_col2")
                     y_data = filtered_df2[y_col]
 
-                # Pilih jenis grafik
                 graph_type = st.sidebar.selectbox("Select Graph Type for Correlation", ["Scatter Plot", "Line Chart", "Bar Chart"])
 
-                # Perhitungan korelasi
                 combined_data = pd.DataFrame({x_col: x_data, y_col: y_data}).dropna()
                 correlation = combined_data[x_col].corr(combined_data[y_col])
                 correlation_text = f"Correlation: {correlation:.2f}"
 
-                # Buat grafik berdasarkan jenis yang dipilih
                 if graph_type == "Scatter Plot":
                     title_label = st.sidebar.text_input("Custom Title Chart", value=f"Scatter Plot of {x_col} vs {y_col}")
                     fig = px.scatter(
@@ -448,11 +407,9 @@ elif selected_page == "Double Dataset Visualization":
                         title=title_label,
                         labels={"x": x_col, "y": y_col}
                     )
-
-                # Tampilkan grafik
+                    
                 st.plotly_chart(fig)
 
-                # Tampilkan nilai korelasi di bawah grafik
                 st.markdown(f"### {correlation_text}")
         else:
             st.write("Please select a title to display data.")
