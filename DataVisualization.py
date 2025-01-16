@@ -28,7 +28,8 @@ def modify_column_dtype(df, column, new_dtype):
         elif new_dtype == "Boolean":
             df[column] = df[column].astype(bool)
     except Exception as e:
-        st.error(f"Failed to convert column '{column}' to {new_dtype}. Error: {e}")
+        if column is not None:
+            st.error(f"Failed to convert column '{column}' to {new_dtype}. Error: {e}")
 
 # Fungsi untuk memfilter data dengan banyak filter opsional
 def apply_filters(df):
