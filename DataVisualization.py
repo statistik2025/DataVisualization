@@ -137,12 +137,17 @@ response = requests.get(BASE_URL, headers=headers)
 data = response.json()
 pageCount = data['_meta']['pageCount']
 
-if data is not None:
+@st.cache_data
+def fetch_all_data(base_url, token, page_count):
     data = None
-for i in range(1, pageCount):
-    new_url = f"{BASE_URL1}{i}"
-    data_T = fetch_and_convert_to_dataframe(new_url, TOKEN)
-    data = pd.concat([data, data_T], ignore_index=True)
+    for i in range(1, page_count):
+        new_url = f"{base_url}{i}"
+        data_T = fetch_and_convert_to_dataframe(new_url, token)
+        data = pd.concat([data, data_T], ignore_index=True)
+    return data
+
+# Ambil data
+data = fetch_all_data(BASE_URL1, TOKEN, pageCount)
 
 
 # Inisialisasi state untuk menyimpan tipe data yang diubah dan judul yang dipilih
