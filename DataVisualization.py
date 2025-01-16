@@ -27,8 +27,7 @@ def modify_column_dtype(df, column, new_dtype):
             df[column] = pd.to_datetime(df[column], errors="coerce")
         elif new_dtype == "Boolean":
             df[column] = df[column].astype(bool)
-    except Exception as e:
-        st.error(f"Failed to convert column '{column}' to {new_dtype}. Error: {e}")
+
 
 # Fungsi untuk memfilter data dengan banyak filter opsional
 def apply_filters(df):
