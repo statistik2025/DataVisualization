@@ -7,10 +7,12 @@ import requests
 st.title("Advanced Data Visualization Tool")
 
 BASE_URL = "https://satudata.jatengprov.go.id/v1/data/"
+BASE_URL1 = "https://satudata.jatengprov.go.id/v1/data?page="
 TOKEN = "8D7xcIj1JPfsHYctqe0twPABS67_kKm0"  # Token dalam tanda kutip
 filtered_df = None
 filtered_df2 = None
 df = None
+data = None
 
 # Fungsi untuk mengubah tipe data
 def modify_column_dtype(df, column, new_dtype):
@@ -84,6 +86,7 @@ def apply_filters2(df):
 
     return df
 
+
 def fetch_and_convert_to_dataframe(url, token):
     """
     Mengambil data dari API dan mengubahnya menjadi DataFrame.
@@ -129,7 +132,17 @@ def fetch_and_convert_to_dataframe(url, token):
 
 st.sidebar.header("Data from API")
 
-data = fetch_and_convert_to_dataframe(BASE_URL, TOKEN)
+headers = {"Authorization": f"Bearer {TOKEN}"}
+response = requests.get(BASE_URL, headers=headers)
+data = response.json()
+pageCount = data['_meta']['pageCount']
+
+if data is not None:
+    data = None
+for i in range(1, pageCount):
+    new_url = f"{BASE_URL1}{i}"
+    data_T = fetch_and_convert_to_dataframe(new_url, TOKEN)
+    data = pd.concat([data, data_T], ignore_index=True)
 
 
 # Inisialisasi state untuk menyimpan tipe data yang diubah dan judul yang dipilih
@@ -185,8 +198,8 @@ if data is not None:
 
             # Terapkan filter dan tampilkan data
             filtered_df = apply_filters(df)
-
             st.write("### Preview Data")
+            st.write(f"##### {judul_selected}")
             st.dataframe(filtered_df)
         else:
             st.write("No data available to display.")
@@ -379,6 +392,7 @@ elif selected_page == "Double Dataset Visualization":
                 filtered_df2 = apply_filters2(df2)
 
                 st.write("### Preview Data")
+                st.write(f"##### {judul_selected2}")
                 st.dataframe(filtered_df2)
             else:
                 st.write("No data available to display.")
