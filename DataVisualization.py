@@ -40,7 +40,7 @@ def apply_filters(df):
         st.sidebar.subheader(f"Filter {i + 1}")
         filter_column = st.sidebar.selectbox(f"Select Column for Filter {i + 1}", df.columns, key=f"filter_col_{i}")
 
-        if pd.api.types.is_numeric_dtype(df[filter_column]):
+        if pd.api.types.is_numeric_dtype(df[filter_column]) and df[filter_column].min() != df[filter_column].max():
             min_val = float(df[filter_column].min())
             max_val = float(df[filter_column].max())
             selected_range = st.sidebar.slider(
