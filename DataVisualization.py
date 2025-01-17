@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import requests
+import io
+
 
 # Judul aplikasi
 st.title("Advanced Data Visualization Tool")
@@ -158,6 +160,9 @@ if "current_judul" not in st.session_state:
     st.session_state.current_judul = None
 
 # Jika ada data untuk ditampilkan
+
+
+
 if data is not None:
     # Menampilkan opsi untuk memilih judul dari kolom "judul"
     judul_selected = st.sidebar.selectbox(
@@ -180,7 +185,7 @@ if data is not None:
         df = fetch_and_convert_to_dataframe(new_url, TOKEN)
 
         if df is not None:
-            st.sidebar.header(f"Modify Column Data Types")
+            st.sidebar.header("Modify Column Data Types")
 
             # Pilih kolom untuk dimodifikasi
             column_to_modify = st.sidebar.selectbox("Select Column to Modify", df.columns, key="col")
@@ -207,12 +212,50 @@ if data is not None:
             st.write("### Preview Data")
             st.write(f"##### {judul_selected}")
             st.dataframe(filtered_df)
+
+            # Tambahkan opsi untuk menampilkan pivot tabel
+            st.sidebar.header("Pivot Table Options")
+            pivot_values = st.sidebar.multiselect("Values (Numeric Columns)", filtered_df.select_dtypes(include=['float64', 'int64']).columns)
+            pivot_index = st.sidebar.multiselect("Index", filtered_df.columns)
+            pivot_columns = st.sidebar.multiselect("Columns", filtered_df.columns)
+            agg_function = st.sidebar.selectbox("Aggregation Type", ["Sum", "Count", "Mean", "Median", "Max", "Min"], index=0)
+
+            if pivot_values and pivot_index:
+                agg_map = {
+                    "Sum": "sum",
+                    "Count": "count",
+                    "Mean": "mean",
+                    "Median": "median",
+                    "Max": "max",
+                    "Min": "min"
+                }
+                pivot_table = pd.pivot_table(
+                    filtered_df,
+                    values=pivot_values,
+                    index=pivot_index,
+                    columns=pivot_columns,
+                    aggfunc=agg_map[agg_function],
+                    fill_value=0
+                )
+                st.write("### Pivot Table")
+                st.dataframe(pivot_table)
+
+                # Tombol untuk mengunduh pivot tabel sebagai Excel
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    pivot_table.to_excel(writer, sheet_name='Pivot Table')
+                output.seek(0)
+                st.download_button(
+                    label="Download Pivot Table as Excel",
+                    data=output,
+                    file_name="pivot_table.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
         else:
             st.write("No data available to display.")
     else:
         st.write("Please select a title to display data.")
 
-        
 # Halaman visualisasi
 pages = ["Single Dataset Visualization", "Double Dataset Visualization"]
 selected_page = st.sidebar.selectbox("Select Page", pages)
@@ -264,7 +307,7 @@ if selected_page == "Single Dataset Visualization" and df is not None:
             )
         
         st.plotly_chart(fig)
-
+        
     elif graph_type == "Scatter Plot":
         x_col = st.sidebar.selectbox("X-axis", numeric_columns)
         y_col = st.sidebar.selectbox("Y-axis", numeric_columns)
