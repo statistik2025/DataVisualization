@@ -141,7 +141,7 @@ pageCount = data['_meta']['pageCount']
 @st.cache_data
 def fetch_all_data(base_url, token, page_count):
     data = None
-    for i in range(1, page_count):
+    for i in range(1, page_count+1):
         new_url = f"{base_url}{i}"
         data_T = fetch_and_convert_to_dataframe(new_url, token)
         data = pd.concat([data, data_T], ignore_index=True)
