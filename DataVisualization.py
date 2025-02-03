@@ -207,6 +207,15 @@ if data is not None:
             for column, dtype in st.session_state.column_dtypes.items():
                 modify_column_dtype(df, column, dtype)
 
+            # Fitur Sorting
+            st.sidebar.header("Sorting Options")
+            sort_column = st.sidebar.selectbox("Select Column to Sort By", [None] + list(df.columns), index=0, key="sort_column1")
+            sort_order = st.sidebar.radio("Sort Order", ["Ascending", "Descending"], index=0, key="sort_order1")
+            
+            if sort_column is not None:
+                ascending = True if sort_order == "Ascending" else False
+                df = df.sort_values(by=sort_column, ascending=ascending)
+
             # Terapkan filter dan tampilkan data
             filtered_df = apply_filters(df)
             st.write("### Preview Data")
@@ -436,9 +445,19 @@ elif selected_page == "Double Dataset Visualization":
                 # Terapkan perubahan tipe data berdasarkan session state
                 for column, dtype2 in st.session_state.column_dtypes2.items():
                     modify_column_dtype(df2, column, dtype2)
+                
+                # Fitur Sorting
+                st.sidebar.header("Sorting Options")
+                sort_column2 = st.sidebar.selectbox("Select Column to Sort By", [None] + list(df2.columns) , index=0, key="sort_column2")
+                sort_order2 = st.sidebar.radio("Sort Order", ["Ascending", "Descending"], index=0, key="sort_order2")
+
+                if sort_column2 is not None:
+                    ascending = True if sort_order2 == "Ascending" else False
+                    df2 = df2.sort_values(by=sort_column2, ascending=ascending)
 
                 # Terapkan filter dan tampilkan data
                 filtered_df2 = apply_filters2(df2)
+
 
                 st.write("### Preview Data")
                 st.write(f"##### {judul_selected2}")
@@ -457,6 +476,9 @@ elif selected_page == "Double Dataset Visualization":
                 st.warning(f"The two datasets must have the same number of rows! Dataset 1 rows: {len(filtered_df)}, Dataset 2 rows: {len(filtered_df2)}")
             else:
                 st.sidebar.header("Correlation Graph Options")
+
+                if numeric_columns1.empty and numeric_columns2.empty:
+                    st.error("No numeric columns available in both datasets!")
 
                 # Pilih dataset untuk x-axis
                 x_axis_dataset = st.sidebar.radio("Select Dataset for X-axis", ["Dataset 1", "Dataset 2"], key="x_axis_dataset")
